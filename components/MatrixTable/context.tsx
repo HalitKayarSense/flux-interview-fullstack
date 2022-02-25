@@ -24,7 +24,7 @@ type MatrixAction = {
   type: 'SET_MATRIX',
   /**
    * When payload is empty, we will need to set the values from originalMatrix
-   */ 
+   */
   payload?: import('../../types').Matrix
   metadata?: {
     /**
@@ -40,9 +40,9 @@ type MatrixAction = {
    */
   payload?: import('../../types').Matrix
 } | {
-  type: 'SOME_ACTION',
-  payload: any
-} // Here you will need to add your other action(s) in order to edit the pricing (remove SOME_ACTION).
+  type: 'SET_MATRIX_CELL',
+  payload?: any
+}
 
 /**
  * This is for the Provider component. No need to change.
@@ -56,24 +56,24 @@ type ProviderProps = {
  */
 const emptyMatrix = {
   "36months": {
-      "lite": 0,
-      "standard": 0,
-      "unlimited": 0,
+    "lite": 0,
+    "standard": 0,
+    "unlimited": 0,
   },
   "24months": {
-      "lite": 0,
-      "standard": 0,
-      "unlimited": 0
+    "lite": 0,
+    "standard": 0,
+    "unlimited": 0
   },
   "12months": {
-      "lite": 0,
-      "standard": 0,
-      "unlimited": 0
+    "lite": 0,
+    "standard": 0,
+    "unlimited": 0
   },
   "mtm": {
-      "lite": 0,
-      "standard": 0,
-      "unlimited": 0
+    "lite": 0,
+    "standard": 0,
+    "unlimited": 0
   }
 } as const
 
@@ -92,15 +92,28 @@ const defaultState: MatrixTableState = {
  * @param state 
  * @param action 
  */
+
 const reducer = (state: MatrixTableState, action: MatrixAction): MatrixTableState => {
-  switch(action.type) {
+
+  switch (action.type) {
     case 'SET_MATRIX':
-      return {
-        ...state,
-      }
+      return { ...state, matrix: action.metadata.resetToEmpty ? emptyMatrix : typeof action.payload !== "undefined" ? action.payload : state.originalMatrix }
     case 'SET_ORIGINAL_MATRIX':
       return {
-        ...state
+        ...state, originalMatrix: action.payload
+      }
+    case 'SET_MATRIX_CELL':
+
+      return {
+        ...state,
+        matrix: {
+          ...state.matrix,
+          [action.payload.PackagePrice]: {
+            ...state.matrix[action.payload.PackagePrice],
+            [action.payload.Tier]: action.payload.Value
+
+          }
+        }
       }
     default:
       return state
@@ -108,7 +121,7 @@ const reducer = (state: MatrixTableState, action: MatrixAction): MatrixTableStat
 }
 
 // Creating the context, you don't need to change this.
-export const MatrixTableContext = createContext<[MatrixTableState, import('react').Dispatch<MatrixAction>]>([defaultState, () => {}])
+export const MatrixTableContext = createContext<[MatrixTableState, import('react').Dispatch<MatrixAction>]>([defaultState, () => { }])
 
 /**
  * This is the provider that hosts the state. You don't need to change this.
