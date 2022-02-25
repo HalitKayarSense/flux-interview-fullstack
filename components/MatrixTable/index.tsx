@@ -80,14 +80,14 @@ const MatrixTable: import('react').FC<Omit<Props, 'initialMatrix'>> = ({ classNa
   //validate if the value is digit only and max 1 dot
   const isValidInput = (value) => {
     let valid = value.match(/^[0-9]*\.?[0-9]*$/);
-    setErrorNotes(valid? "": "You can't enter letters & symbols, or more then 1 dot")
-    
+    setErrorNotes(valid ? "" : "You can't enter letters & symbols, or more then 1 dot")
+
     return valid
   }
 
 
   //called each time something is typed in the cells
-  const setTyping = (PackagePrice, Tier, Value) => {
+  const setTyping = (PackagePrice, Tier, Value, onBlur = false) => {
 
 
     if (isValidInput(Value)) {
@@ -98,10 +98,12 @@ const MatrixTable: import('react').FC<Omit<Props, 'initialMatrix'>> = ({ classNa
       }
 
       setIsChanged(true);
-      
-      //convert the input to float
-      Value = parseFloat(Value);
-      
+
+      //if user finished entering input, the value will be parsed to float, otherwise it will maintain restricted string
+      if(onBlur){
+        Value = parseFloat(Value);
+      }
+
       //update the cell value
       dispatch({
         type: 'SET_MATRIX_CELL',
@@ -114,6 +116,10 @@ const MatrixTable: import('react').FC<Omit<Props, 'initialMatrix'>> = ({ classNa
 
       //if is 'lite' then update other tiers who get effected by multiplying 2 and 3
       if (Tier == "lite") {
+
+        //convert the input to float to do the math
+        Value = parseFloat(Value);
+
         dispatch({
           type: 'SET_MATRIX_CELL',
           payload: {
@@ -201,7 +207,9 @@ const MatrixTable: import('react').FC<Omit<Props, 'initialMatrix'>> = ({ classNa
                   <input
                     className='inputCell'
                     value={matrix[row][colomn]}
-                    onChange={(e) => setTyping(row, colomn, e.target.value)} disabled={!editMode} />
+                    onChange={(e) => setTyping(row, colomn, e.target.value)} 
+                    onBlur={(e) => setTyping(row, colomn, e.target.value, true)}
+                    disabled={!editMode} />
                 </td>
               ))}
             </tr>
